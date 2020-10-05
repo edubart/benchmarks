@@ -1,0 +1,71 @@
+require 'vector'
+require 'math'
+require 'string'
+require 'arg'
+
+local function cnotify(msg: cstring, len: csize) <cimport 'notify'> end
+local function notify(msg: stringview) cnotify(msg, #msg) end
+local function getpid(): cint <cimport,cinclude'<unistd.h>',nodecl> end
+
+local Matrix = @vector(vector(number))
+
+local function newmat(n: integer, m: integer): Matrix
+  local mat: Matrix
+  mat:resize(n)
+  for i=0,<n do
+    mat[i]:resize(m)
+  end
+  return mat
+end
+
+local function matgen(n: integer, seed: number): Matrix
+  local mat = newmat(n, n)
+  local tmp = seed / n / n
+  for i=0,<n do
+    for j=0,<n do
+      mat[i][j] = tmp * (i-j) * (i+j)
+    end
+  end
+  return mat
+end
+
+local function matmul(n: integer, a: Matrix, b: Matrix): Matrix
+  local m, n, p = #a, #a[0], #b[0]
+  local bT, c = newmat(n, p), newmat(m, p)
+  -- transpose
+  for i=0,<n do
+    for j=0,<p do
+      bT[i][j] = b[j][i]
+    end
+  end
+  -- multiply
+  for i=0,<m do
+    for j=0,<p do
+      local s = 0.0
+      for k=0,<n do
+        s = s + a[i][k] * bT[j][k]
+      end
+      c[i][j] = s
+    end
+  end
+  return c
+end
+
+local function calc(n: integer): number
+  n = n // 2 * 2
+  local a = matgen(n, 1.0)
+  local b = matgen(n, 2.0)
+  local c = matmul(n, a, b)
+  return c[n // 2][n // 2]
+end
+
+local n = #arg > 0 and tointeger(arg[1]) or 100
+local left = calc(101)
+local right = -18.67
+if math.abs(left - right) > 0.1 then
+  error(tostringview(left..' != '..right))
+end
+
+notify(string.format(#['Nelua/'..config.cc..'\t%d']#, getpid()))
+print(calc(n))
+notify("stop")

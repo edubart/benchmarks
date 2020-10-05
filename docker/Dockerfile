@@ -211,6 +211,13 @@ RUN git clone https://github.com/vlang/v.git /opt/v \
 	&& make -j
 ENV PATH="/opt/v/:${PATH}"
 
+# https://nelua.io/
+RUN git clone https://github.com/edubart/nelua-lang.git /opt/nelua \
+	&& cd nelua \
+	&& make -j \
+	&& ln -s /opt/nelua/nelua.sh /usr/bin/nelua
+ENV PATH="/opt/nelua/:${PATH}"
+
 ARG SCRIPTS_VER=unknown
 COPY *.rb ./
 

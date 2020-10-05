@@ -9,6 +9,8 @@ executables := \
 	target/matmul_nim_clang \
 	target/matmul_nim_arraymancer_gcc \
 	target/matmul_nim_arraymancer_clang \
+	target/matmul_nelua_gcc \
+	target/matmul_nelua_clang \
 	target/matmul_cr \
 	target/matmul_go \
 	target/matmul_go_gccgo \
@@ -92,6 +94,12 @@ target/matmul_nim_arraymancer_gcc: matmul_arraymancer.nim | target arraymancer
 target/matmul_nim_arraymancer_clang: NIM_FLAGS += -d:openmp
 target/matmul_nim_arraymancer_clang: matmul_arraymancer.nim | target arraymancer
 	$(NIM_CLANG_BUILD)
+
+target/matmul_nelua_gcc: matmul.nelua | target libnotify
+	$(NELUA_GCC_BUILD)
+
+target/matmul_nelua_clang: matmul.nelua | target libnotify
+	$(NELUA_CLANG_BUILD)
 
 target/matmul_c: matmul.c | target libnotify
 	$(GCC_BUILD)

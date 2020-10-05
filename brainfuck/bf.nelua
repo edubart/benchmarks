@@ -1,0 +1,80 @@
+require 'io'
+require 'vector'
+require 'C.arg'
+require 'C.stdio'
+
+local function cnotify(msg: cstring, len: csize) <cimport 'notify'> end
+local function notify(msg: stringview) cnotify(msg, #msg) end
+local function getpid(): cint <cimport,cinclude'<unistd.h>',nodecl> end
+
+local int = @int32
+local OpType = @enum(int){Inc=0,Move,Loop,Print}
+local Op = @record{type: OpType, value: int, loop: vector(Op)}
+local Tape = @record{pos: int, data: vector(int)}
+
+function Tape:get(): int
+  return self.data[self.pos]
+end
+
+function Tape:inc(x: int)
+  self.data[self.pos] = self.data[self.pos] + x
+end
+
+function Tape:_grow() <noinline>
+  while self.pos >= #self.data do
+    self.data:resize(2*#self.data)
+  end
+end
+
+function Tape:move(x: int)
+  self.pos = self.pos + x
+  if self.pos >= #self.data then
+    self:_grow()
+  end
+end
+
+function Tape:print() <noinline>
+  C.fputc(self:get(), C.stdout)
+  C.fflush(C.stdout)
+end
+
+local function parse(code: stringview, i: int): (vector(Op), int)
+  local ops: vector(Op)
+  while i < #code do
+    switch code.data[i] do
+    case '+'_u8 then ops:push{type=OpType.Inc, value=1}
+    case '-'_u8 then ops:push{type=OpType.Inc, value=-1}
+    case '>'_u8 then ops:push{type=OpType.Move, value=1}
+    case '<'_u8 then ops:push{type=OpType.Move, value=-1}
+    case '.'_u8 then ops:push{type=OpType.Print}
+    case '['_u8 then
+      local loop_ops: vector(Op)
+      loop_ops, i = parse(code, i+1)
+      ops:push{type=OpType.Loop, loop=loop_ops}
+    case ']'_u8 then return ops, i
+    end
+    i = i + 1
+  end
+  return ops, i
+end
+
+local function run(ops: vector(Op), tape: *Tape)
+  for i:int=0,<#ops do
+    local op = ops[i]
+    switch op.type do
+    case OpType.Inc then tape:inc(op.value)
+    case OpType.Move then tape:move(op.value)
+    case OpType.Loop then while tape:get() > 0 do run(op.loop, tape) end
+    case OpType.Print then tape:print()
+    end
+  end
+end
+
+local file = io.open(C.argv[1])
+local contents = file:read("*a")
+file:close()
+notify(string.format(#['Nelua/'..config.cc..'\t%d']#, getpid()))
+local ops = parse(contents, 0)
+local tape: Tape = {0, {0}}
+run(ops, tape)
+notify("stop")

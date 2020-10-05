@@ -2,6 +2,7 @@ GCC_FLAGS := -O3 -Wall -flto -Wa,-mbranches-within-32B-boundaries
 CLANG_FLAGS := -O3 -mbranches-within-32B-boundaries
 LIBNOTIFY_FLAGS := -I../common/libnotify ../common/libnotify/target/libnotify.a
 NIM_FLAGS := -d:danger --verbosity:0 --opt:speed --hints:off
+NELUA_FLAGS := --release -P nochecks --cflags="-O3 -flto ../common/libnotify/target/libnotify.a" --cache-dir "./target/nelua_cache"
 VALAC_FLAGS := --disable-assert -X -O3 --pkg gio-2.0 --pkg posix
 V_FLAGS := -prod
 
@@ -23,6 +24,8 @@ MCS_BUILD =		mcs -debug- -optimize+ -out:$@ $^
 MLTON_BUILD =		mlton -output $@ $^
 NIM_CLANG_BUILD =	nim c -o:$@ --cc:clang $(NIM_FLAGS) $^
 NIM_GCC_BUILD =	nim c -o:$@ --cc:gcc $(NIM_FLAGS) $^
+NELUA_CLANG_BUILD =	nelua -b --output=$@ --cc=clang $(NELUA_FLAGS) $^
+NELUA_GCC_BUILD =	nelua -b --output=$@ --cc=gcc $(NELUA_FLAGS) $^
 RUSTC_BUILD =		rustc -C opt-level=3 -C lto -o $@ $^
 SCALAC_BUILD =		scalac -d $@ $^
 VALAC_CLANG_BUILD =	valac $^ --cc=clang -D CLANG_TEST $(VALAC_FLAGS) -o $@

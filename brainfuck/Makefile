@@ -12,6 +12,8 @@ executables := \
 	target/bin_rs \
 	target/bin_nim_clang \
 	target/bin_nim_gcc \
+	target/bin_nelua_clang \
+	target/bin_nelua_gcc \
 	target/bin_cr \
 	target/bin_hs_marray \
 	target/bin_ocaml \
@@ -105,6 +107,12 @@ target/bin_nim_clang: bf.nim | target
 
 target/bin_nim_gcc: bf.nim | target
 	$(NIM_GCC_BUILD)
+
+target/bin_nelua_clang: bf.nelua | target libnotify
+	$(NELUA_CLANG_BUILD)
+
+target/bin_nelua_gcc: bf.nelua | target libnotify
+	$(NELUA_GCC_BUILD)
 
 target/bin_hs: bf.hs | target
 	$(GHC_BUILD)

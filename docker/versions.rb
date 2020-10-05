@@ -41,6 +41,7 @@ LANGS = {
     `nim c --verbosity:0 --hint[Processing]:off \
            -r #{cat('nim.nim', 'echo NimVersion')}`
   end,
+  'Nelua' => -> { `nelua --version`.split[1] },
   'Crystal' => -> { `crystal eval "puts Crystal::VERSION"` },
   'Go' => lambda do
     prog = <<~GO
